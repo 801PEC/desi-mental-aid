@@ -2,41 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Mental Health Platform Design System - Calming, trustworthy, accessible */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Calming base colors */
+    --background: 210 25% 98%;
+    --foreground: 215 25% 25%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Card system with soft whites */
+    --card: 210 20% 99%;
+    --card-foreground: 215 25% 25%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Popover system */
+    --popover: 210 20% 99%;
+    --popover-foreground: 215 25% 25%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Soft trustworthy blue */
+    --primary: 210 75% 55%;
+    --primary-foreground: 210 20% 99%;
+    --primary-glow: 210 85% 65%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Muted sage green */
+    --secondary: 140 25% 85%;
+    --secondary-foreground: 140 40% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Calming muted tones */
+    --muted: 210 15% 92%;
+    --muted-foreground: 215 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Soft earth tone */
+    --accent: 30 35% 88%;
+    --accent-foreground: 30 45% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Calming success green */
+    --success: 140 60% 50%;
+    --success-foreground: 140 20% 95%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Gentle warning earth tone */
+    --warning: 45 85% 65%;
+    --warning-foreground: 45 15% 25%;
 
-    --radius: 0.5rem;
+    /* Soft destructive */
+    --destructive: 0 65% 60%;
+    --destructive-foreground: 0 20% 95%;
+
+    /* Subtle borders */
+    --border: 210 20% 88%;
+    --input: 210 20% 90%;
+    --ring: 210 75% 55%;
+
+    --radius: 0.75rem;
+
+    /* Gradients for depth and calm */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-calm: linear-gradient(180deg, hsl(var(--background)), hsl(var(--accent)));
+    --gradient-subtle: linear-gradient(135deg, hsl(var(--card)), hsl(var(--muted)));
+
+    /* Shadows for depth */
+    --shadow-soft: 0 4px 20px -4px hsl(var(--primary) / 0.1);
+    --shadow-gentle: 0 2px 10px -2px hsl(var(--muted-foreground) / 0.1);
+
+    /* Animations */
+    --transition-calm: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +128,38 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary to-primary-glow text-primary-foreground;
+    @apply hover:shadow-lg transition-all duration-300;
+    @apply rounded-xl px-6 py-3 font-medium;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground border border-border;
+    @apply hover:bg-secondary/80 transition-all duration-300;
+    @apply rounded-xl px-6 py-3 font-medium;
+  }
+
+  .card-gentle {
+    @apply bg-card border border-border rounded-xl;
+    @apply shadow-[var(--shadow-gentle)] hover:shadow-[var(--shadow-soft)];
+    @apply transition-all duration-300;
+  }
+
+  .text-calm {
+    @apply text-muted-foreground leading-relaxed;
+  }
+
+  .gradient-bg {
+    background: var(--gradient-calm);
+  }
+
+  .hero-section {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--accent)) 100%);
   }
 }
