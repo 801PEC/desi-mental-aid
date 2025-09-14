@@ -81,10 +81,12 @@ const BookingSystem = () => {
     setIsSubmitting(true);
     
     try {
-      // Save booking to database
-      const { data: booking, error: dbError } = await supabase
+      const bookingId = crypto.randomUUID();
+      // Save booking to database (no select to avoid RLS on returning)
+      const { error: dbError } = await supabase
         .from('bookings')
         .insert({
+          id: bookingId,
           name: formData.name,
           email: formData.email,
           phone: formData.phone || null,
@@ -96,9 +98,7 @@ const BookingSystem = () => {
           concerns: formData.concerns || null,
           counselor_id: formData.counselorId || null,
           status: 'pending'
-        })
-        .select()
-        .single();
+        });
 
       if (dbError) {
         console.error('Database error:', dbError);
@@ -117,7 +117,7 @@ const BookingSystem = () => {
           timeSlot: selectedTimeSlot,
           sessionType: formData.sessionType,
           concerns: formData.concerns,
-          bookingId: booking.id
+          bookingId: bookingId
         }
       });
 
