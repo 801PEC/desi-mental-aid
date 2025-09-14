@@ -6,12 +6,30 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Shield, User, Phone, Mail, Lock } from "lucide-react";
+import { Calendar, Clock, Shield, User, Phone, Mail, Lock, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const BookingSystem = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
   const [bookingStep, setBookingStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    college: "",
+    academicYear: "",
+    preferredDate: "",
+    timeSlot: "",
+    sessionType: "",
+    concerns: "",
+    counselorId: ""
+  });
 
   const timeSlots = [
     { time: "9:00 AM", available: true },
@@ -50,10 +68,101 @@ const BookingSystem = () => {
     }
   ];
 
-  const handleBooking = () => {
-    // This would normally integrate with backend
-    alert("Booking request submitted! You will receive a confirmation email shortly with session details and a secure video link.");
-    setBookingStep(1);
+  const handleBooking = async () => {
+    if (!selectedTimeSlot || !formData.name || !formData.email || !formData.college || !formData.academicYear || !formData.preferredDate || !formData.sessionType) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      // Save booking to database
+      const { data: booking, error: dbError } = await supabase
+        .from('bookings')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || null,
+          college: formData.college,
+          academic_year: formData.academicYear,
+          preferred_date: formData.preferredDate,
+          time_slot: selectedTimeSlot,
+          session_type: formData.sessionType,
+          concerns: formData.concerns || null,
+          counselor_id: formData.counselorId || null,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error('Failed to save booking');
+      }
+
+      // Send confirmation email
+      const { error: emailError } = await supabase.functions.invoke('send-booking-confirmation', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          college: formData.college,
+          academicYear: formData.academicYear,
+          preferredDate: formData.preferredDate,
+          timeSlot: selectedTimeSlot,
+          sessionType: formData.sessionType,
+          concerns: formData.concerns,
+          bookingId: booking.id
+        }
+      });
+
+      if (emailError) {
+        console.error('Email error:', emailError);
+        // Don't throw error for email failure, booking is still saved
+        toast({
+          title: "Booking Confirmed!",
+          description: "Your session has been booked successfully. There was an issue sending the confirmation email, but your booking is saved.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Booking Confirmed!",
+          description: "Your session has been booked and a confirmation email has been sent.",
+          variant: "default",
+        });
+      }
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        college: "",
+        academicYear: "",
+        preferredDate: "",
+        timeSlot: "",
+        sessionType: "",
+        concerns: "",
+        counselorId: ""
+      });
+      setSelectedTimeSlot("");
+      setBookingStep(1);
+
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      toast({
+        title: "Booking Failed",
+        description: error.message || "There was an error processing your booking. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -134,27 +243,52 @@ const BookingSystem = () => {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" placeholder="Enter your full name" />
+                    <Input 
+                      id="name" 
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" placeholder="your.email@college.edu" />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="your.email@college.edu"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number (Optional)</Label>
-                    <Input id="phone" type="tel" placeholder="+91 9876543210" />
+                    <Input 
+                      id="phone" 
+                      type="tel" 
+                      placeholder="+91 9876543210"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="college">College/Institution</Label>
-                    <Input id="college" placeholder="Your college name" />
+                    <Input 
+                      id="college" 
+                      placeholder="Your college name"
+                      value={formData.college}
+                      onChange={(e) => setFormData({ ...formData, college: e.target.value })}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="year">Academic Year</Label>
-                    <Select>
+                    <Select value={formData.academicYear} onValueChange={(value) => setFormData({ ...formData, academicYear: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select your year" />
                       </SelectTrigger>
@@ -181,7 +315,13 @@ const BookingSystem = () => {
                 <>
                   <div className="space-y-2">
                     <Label>Preferred Date</Label>
-                    <Input type="date" min={new Date().toISOString().split('T')[0]} />
+                    <Input 
+                      type="date" 
+                      min={new Date().toISOString().split('T')[0]}
+                      value={formData.preferredDate}
+                      onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -192,7 +332,10 @@ const BookingSystem = () => {
                           key={slot.time}
                           variant={selectedTimeSlot === slot.time ? "default" : "outline"}
                           disabled={!slot.available}
-                          onClick={() => setSelectedTimeSlot(slot.time)}
+                          onClick={() => {
+                            setSelectedTimeSlot(slot.time);
+                            setFormData({ ...formData, timeSlot: slot.time });
+                          }}
                           className={`${selectedTimeSlot === slot.time ? 'btn-primary' : 'btn-secondary'}`}
                         >
                           <Clock className="h-4 w-4 mr-1" />
@@ -208,12 +351,14 @@ const BookingSystem = () => {
                       id="concerns"
                       placeholder="Share any specific concerns or topics you'd like to address in your session..."
                       className="min-h-[100px]"
+                      value={formData.concerns}
+                      onChange={(e) => setFormData({ ...formData, concerns: e.target.value })}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label>Session Type</Label>
-                    <Select>
+                    <Select value={formData.sessionType} onValueChange={(value) => setFormData({ ...formData, sessionType: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose session type" />
                       </SelectTrigger>
@@ -235,10 +380,17 @@ const BookingSystem = () => {
                     </Button>
                     <Button 
                       onClick={handleBooking}
-                      disabled={!selectedTimeSlot}
+                      disabled={!selectedTimeSlot || isSubmitting}
                       className="btn-primary flex-1"
                     >
-                      Confirm Booking
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Booking...
+                        </>
+                      ) : (
+                        "Confirm Booking"
+                      )}
                     </Button>
                   </div>
                 </>
