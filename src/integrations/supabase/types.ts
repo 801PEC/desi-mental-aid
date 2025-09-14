@@ -14,7 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          academic_year: string
+          college: string
+          concerns: string | null
+          counselor_id: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          preferred_date: string
+          session_type: string
+          status: string | null
+          time_slot: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          academic_year: string
+          college: string
+          concerns?: string | null
+          counselor_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          preferred_date: string
+          session_type: string
+          status?: string | null
+          time_slot: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          academic_year?: string
+          college?: string
+          concerns?: string | null
+          counselor_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          preferred_date?: string
+          session_type?: string
+          status?: string | null
+          time_slot?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
